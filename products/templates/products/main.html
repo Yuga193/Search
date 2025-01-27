@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品リスト</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a1a; /* ダークグレー */
+            color: #f5f5f5; /* ホワイト */
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #f5c100; /* ゴールド */
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 30px;
+            text-decoration: none;
+            color: #1a1a1a; /* 黒 */
+            background-color: #f5c100; /* ゴールド */
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #333; /* 黒 */
+            color: #f5c100; /* ゴールド */
+        }
+        .btn-delete {
+            background-color: #dc3545; /* 赤 */
+            color: #fff; /* 白 */
+            border: none; /* 枠線を消す */
+        }
+        .btn-delete:hover {
+            background-color: #a71d2a; /* 濃い赤 */
+            color: #fff; /* 白 */
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+        .product-item {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 20px;
+        }
+        .product-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(255, 204, 0, 0.3); /* ゴールドの影 */
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #333; /* 背景色 */
+            margin-bottom: 10px;
+        }
+        .product-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        .product-text {
+            background-color: #ffffff; /* 白背景 */
+            color: #333; /* テキストカラーを濃いグレーに */
+            margin-top: 15px;
+            padding: 15px; /* 余白を追加 */
+            border-radius: 10px; /* 角を丸める */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 軽いシャドウ */
+        }
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #f5c100; /* ゴールド */
+            font-family: 'Playfair Display', serif;
+        }
+        p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555; /* ダークグレー */
+        }
+        .pagination {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .step-links a {
+            margin: 0 5px;
+            color: #f5c100;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .step-links a:hover {
+            color: #fff;
+        }
+        .step-links .current {
+            margin: 0 5px;
+            font-weight: bold;
+        }
+        form input, form select {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #555;
+            background-color: #222;
+            color: #f5f5f5;
+            border-radius: 30px;
+            transition: border-color 0.3s ease;
+        }
+        form input:focus, form select:focus {
+            border-color: #f5c100;
+        }
+    </style>
+</head>
+<body>
+    <h1>商品リスト</h1>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <a href="{% url 'product_create' %}" class="btn">新しい商品を追加</a>
+    </div>
+
+    <form method="get" style="text-align: center; margin-bottom: 20px;">
+        <input type="text" name="q" placeholder="商品名で検索" value="{{ query }}" style="width: 200px;">
+        <select name="category" style="width: 200px;">
+            <option value="">すべてのカテゴリ</option>
+            {% for category in categories %}
+                <option value="{{ category }}" {% if category == category_filter %}selected{% endif %}>{{ category }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="min_price" placeholder="最低価格" value="{{ min_price }}" style="width: 100px;">
+        <input type="number" name="max_price" placeholder="最高価格" value="{{ max_price }}" style="width: 100px;">
+        <select name="sort_by" style="width: 150px;">
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>名前順</option>
+            <option value="price" {% if sort_by == 'price' %}selected{% endif %}>価格順</option>
+        </select>
+        <button type="submit" class="btn">検索</button>
+    </form>
+    
+    <div class="product-grid">
+        {% for product in products %}
+        <div class="product-item" style="background-color: {{ product.background_color_code|default:'#ffffff' }};">
+            <div class="product-image">
+                {% if product.image and product.image.url %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <img src="{% static 'noimage.png' %}" alt="No Image">
+                {% endif %}
+            </div>
+            <div class="product-text">
+                <h2>{{ product.name }}</h2>
+                <p>{{ product.description }}</p>
+                <p>価格: {{ product.price }}円</p>
+                <p>カテゴリ: {{ product.category }}</p>
+                <p>在庫数: {{ product.stock }}</p>
+                <a href="{% url 'product_edit' product.pk %}" class="btn">編集</a>
+                <form method="post" action="{% url 'product_delete' product.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-delete">削除</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p style="text-align: center;">商品がありません。</p>
+        {% endfor %}
+    </div>
+    
+    <div class="pagination">
+        <span class="step-links">
+            {% if products.has_previous %}
+                <a href="?page=1">&laquo; 最初</a>
+                <a href="?page={{ products.previous_page_number }}">前</a>
+            {% endif %}
+            <span class="current">
+                Page {{ products.number }} of {{ products.paginator.num_pages }}
+            </span>
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}">次</a>
+                <a href="?page={{ products.paginator.num_pages }}">最後 &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</body>
+</html>
