@@ -66,13 +66,14 @@ WSGI_APPLICATION = 'search_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'searchapp_test',  # 作成したデータベース名
-        'USER': 'postgres',        # データベースユーザー名
-        'PASSWORD': 'postgres',  # データベースユーザーのパスワード
-        'HOST': 'localhost',       # データベースサーバーのホスト
-        'PORT': '5432',            # デフォルトのPostgreSQLポート
+        'NAME': 'djangodb',       # PostgreSQLのデータベース名
+        'USER': 'django',         # PostgreSQLのユーザー名
+        'PASSWORD': 'testPassword1',  # ユーザーのパスワード
+        'HOST': 'localhost',      # データベースサーバーのホスト
+        'PORT': '5432',           # デフォルトのPostgreSQLポート
     }
 }
+
 
 
 # Password validation
